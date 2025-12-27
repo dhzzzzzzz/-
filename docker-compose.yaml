@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  # Next.js应用
+  ai-navigation:
+    build: .
+    container_name: ai-navigation-site
+    ports:
+      - "9000:9000"
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      - MEILISEARCH_HOST=http://meilisearch:7700
+      - MEILISEARCH_MASTER_KEY=${MEILISEARCH_MASTER_KEY:-masterKey}
+    depends_on:
+      - meilisearch
+    networks:
+      - ai-nav-network
+
+  # Meilisearch搜索服务
+  meilisearch:
+    image: getmeili/meilisearch:v1.5
+    container_name: meilisearch
+    ports:
+      - "7700:7700"
+    environment:
+      - MEILI_MASTER_KEY=${MEILISEARCH_MASTER_KEY:-masterKey}
+      - MEILI_ENV=production
+    volumes:
+      - meilisearch_data:/meili_data
+    restart: unless-stopped
+    networks:
+      - ai-nav-network
+
+volumes:
+  meilisearch_data:
+
+networks:
+  ai-nav-network:
+    driver: bridge
+
